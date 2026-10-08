@@ -23,6 +23,19 @@ app.post("/employees", (req, res) => {
     res.status(201).json(newEmployee);
 });
 
+app.delete("/employees/:id", (req, res) => {
+    const id = Number(req.params.id);
+    const index = employees.findIndex(emp => emp.id === id);
+
+    if (index === -1) {
+        return res.status(404).send("Employee not found");
+    }
+
+    employees.splice(index, 1);
+    res.send("Employee deleted successfully");
+});
+
+
 app.get("/", (req, res) => {
   res.send("Welcome to the Employee Record Manager. Employee API is running.");
 });
