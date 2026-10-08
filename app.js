@@ -35,6 +35,19 @@ app.delete("/employees/:id", (req, res) => {
     res.send("Employee deleted successfully");
 });
 
+app.put("/employees/:id", (req, res) => {
+    const id = Number(req.params.id);
+    const employee = employees.find(emp => emp.id === id);
+
+    if (!employee) {
+        return res.status(404).send("Employee not found");
+    }
+
+    employee.name = req.body.name || employee.name;
+    employee.role = req.body.role || employee.role;
+
+    res.json(employee);
+});
 
 app.get("/", (req, res) => {
   res.send("Welcome to the Employee Record Manager. Employee API is running.");
