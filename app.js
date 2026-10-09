@@ -1,54 +1,50 @@
+require("dotenv").config();
+const mongoose = require("mongoose");
+
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => console.log("Connected to MongoDB"))
+  .catch(err => console.log(err));
+
+const employeeSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  role: { type: String, required: true },
+});
+const Employee = mongoose.model("Employee", employeeSchema);
+
 const express = require("express");
 const app = express();
 const cors = require("cors");
 app.use(cors());
 app.use(express.json());
 
-const employees = [
-  { id: 1, name: "John Doe", role: "Software Engineer" },
-  { id: 2, name: "Jane Smith", role: "Product Manager" },
-  { id: 3, name: "Bob Johnson", role: "Designer" },
-];
 
-
-app.get("/employees", (req, res) => {
-  res.json(employees);
+app.get("/employees", async (req, res) => {
+  const list = await Employee.find();
+  res.json(list);
 });
 
-app.post("/employees", (req, res) => {
-    const newEmployee = {
-        id: employees.length + 1,
-        name: req.body.name,
-        role: req.body.role
-    }
-    employees.push(newEmployee);
-    res.status(201).json(newEmployee);
+app.post("/employees", async (req, res) => {
+  const newEmployee = await Employee.create({
+    name: req.body.name,
+    role: req.body.role,
+  });
+  res.status(201).json(newEmployee);
 });
 
-app.delete("/employees/:id", (req, res) => {
-    const id = Number(req.params.id);
-    const index = employees.findIndex(emp => emp.id === id);
-
-    if (index === -1) {
-        return res.status(404).send("Employee not found");
-    }
-
-    employees.splice(index, 1);
-    res.send("Employee deleted successfully");
+app.put("/employees/:id", async (req, res) => {
+  const updated = await Employee.findByIdAndUpdate(req.params.id, req.body, { new: true });
+  if (!updated) {
+    return res.status(404).send("Employee not found");
+  }
+  res.json(updated);
 });
 
-app.put("/employees/:id", (req, res) => {
-    const id = Number(req.params.id);
-    const employee = employees.find(emp => emp.id === id);
-
-    if (!employee) {
-        return res.status(404).send("Employee not found");
-    }
-
-    employee.name = req.body.name || employee.name;
-    employee.role = req.body.role || employee.role;
-
-    res.json(employee);
+app.delete("/employees/:id", async (req, res) => {
+  const deleted = await Employee.findByIdAndDelete(req.params.id);
+  if (!deleted) {
+    return res.status(404).send("Employee not found");
+  }
+  res.send("Employee deleted successfully");
 });
 
 app.get("/", (req, res) => {
